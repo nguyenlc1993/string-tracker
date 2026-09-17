@@ -181,15 +181,20 @@ it('should remove subsequent adds/strings with a remove in between in changes ar
   expect(tracker.getChanges()).toStrictEqual(['asd', [1, 'a '], 'pog'])
 })
 
-it.each<[string, StringTracker, Change[]]>([
+it.each<[string, () => StringTracker, Change[]]>([
   [
     'add shorter than remove',
-    createStringTracker('  0').remove(2, 3).add(2, '😊  ').remove(0, 5),
+    () => createStringTracker('  0').remove(2, 3).add(2, 'x  ').remove(0, 4),
     [' ', [StringOp.Remove, ' 0']],
   ],
-  ['add longer than remove', createStringTracker('aa').add(0, 'aaa').remove(3, 5), ['aa', [StringOp.Add, 'a']]],
-  ['overlaps cross mid-text', createStringTracker('aab').add(0, 'ab').remove(2, 5), ['a', [StringOp.Remove, 'a'], 'b']],
-])('should not drop repeated chars when folding an overlapping add and remove (%s)', (_, tracker, changes) => {
+  ['add longer than remove', () => createStringTracker('aa').add(0, 'aaa').remove(3, 5), ['aa', [StringOp.Add, 'a']]],
+  [
+    'overlaps cross mid-text',
+    () => createStringTracker('aab').add(0, 'ab').remove(2, 5),
+    ['a', [StringOp.Remove, 'a'], 'b'],
+  ],
+])('should not drop repeated chars when folding an overlapping add and remove (%s)', (_, build, changes) => {
+  const tracker = build()
   expect(tracker.getChanges()).toStrictEqual(changes)
   assertValidTracker(tracker)
 })
